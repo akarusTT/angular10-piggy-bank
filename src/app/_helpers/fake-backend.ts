@@ -11,7 +11,7 @@ import { Observable, of, throwError } from 'rxjs';
 import { delay, materialize, dematerialize } from 'rxjs/operators';
 
 // array in local storage for registered users
-const usersKey = 'angular-10-registration-login-example-users';
+const usersKey = 'piggy-bank-users';
 let users = JSON.parse(localStorage.getItem(usersKey)) || [];
 
 @Injectable()
@@ -24,7 +24,7 @@ export class FakeBackendInterceptor implements HttpInterceptor {
 
     return handleRoute();
 
-    function handleRoute() {
+    function handleRoute(): any {
       switch (true) {
         case url.endsWith('/users/authenticate') && method === 'POST':
           return authenticate();
@@ -46,19 +46,21 @@ export class FakeBackendInterceptor implements HttpInterceptor {
 
     // route functions
 
-    function authenticate() {
+    function authenticate(): any {
       const { username, password } = body;
       const user = users.find(
         (x) => x.username === username && x.password === password
       );
-      if (!user) return error('Username or password is incorrect');
+      if (!user) {
+        return error('Username or password is incorrect');
+      }
       return ok({
         ...basicDetails(user),
         token: 'fake-jwt-token',
       });
     }
 
-    function register() {
+    function register(): any {
       const user = body;
 
       if (users.find((x) => x.username === user.username)) {
@@ -71,23 +73,29 @@ export class FakeBackendInterceptor implements HttpInterceptor {
       return ok();
     }
 
-    function getUsers() {
-      if (!isLoggedIn()) return unauthorized();
+    function getUsers(): any {
+      if (!isLoggedIn()) {
+        return unauthorized();
+      }
       return ok(users.map((x) => basicDetails(x)));
     }
 
-    function getUserById() {
-      if (!isLoggedIn()) return unauthorized();
+    function getUserById(): any {
+      if (!isLoggedIn()) {
+        return unauthorized();
+      }
 
       const user = users.find((x) => x.id === idFromUrl());
       return ok(basicDetails(user));
     }
 
-    function updateUser() {
-      if (!isLoggedIn()) return unauthorized();
+    function updateUser(): any {
+      if (!isLoggedIn()) {
+        return unauthorized();
+      }
 
-      let params = body;
-      let user = users.find((x) => x.id === idFromUrl());
+      const params = body;
+      const user = users.find((x) => x.id === idFromUrl());
 
       // only update password if entered
       if (!params.password) {
@@ -101,8 +109,10 @@ export class FakeBackendInterceptor implements HttpInterceptor {
       return ok();
     }
 
-    function deleteUser() {
-      if (!isLoggedIn()) return unauthorized();
+    function deleteUser(): any {
+      if (!isLoggedIn()) {
+        return unauthorized();
+      }
 
       users = users.filter((x) => x.id !== idFromUrl());
       localStorage.setItem(usersKey, JSON.stringify(users));
@@ -111,36 +121,37 @@ export class FakeBackendInterceptor implements HttpInterceptor {
 
     // helper functions
 
-    function ok(body?) {
+    function ok(body?): any {
       return of(new HttpResponse({ status: 200, body })).pipe(delay(500)); // delay observable to simulate server api call
     }
 
-    function error(message) {
+    function error(message): any {
       return throwError({ error: { message } }).pipe(
         materialize(),
         delay(500),
         dematerialize()
-      ); // call materialize and dematerialize to ensure delay even if an error is thrown (https://github.com/Reactive-Extensions/RxJS/issues/648);
+      ); // call materialize and dematerialize to ensure delay even if an error is thrown
     }
 
-    function unauthorized() {
+    function unauthorized(): any {
       return throwError({
         status: 401,
         error: { message: 'Unauthorized' },
       }).pipe(materialize(), delay(500), dematerialize());
     }
 
-    function basicDetails(user) {
+    function basicDetails(user): any {
       const { id, username, firstName, lastName } = user;
       return { id, username, firstName, lastName };
     }
 
-    function isLoggedIn() {
+    function isLoggedIn(): any {
       return headers.get('Authorization') === 'Bearer fake-jwt-token';
     }
 
-    function idFromUrl() {
+    function idFromUrl(): any {
       const urlParts = url.split('/');
+      // tslint:disable-next-line: radix
       return parseInt(urlParts[urlParts.length - 1]);
     }
   }
