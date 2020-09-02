@@ -1,0 +1,14 @@
+{
+  "workbench.colorCustomizations": {
+    "list.inactiveSelectionBackground": "#143a55",
+    "sideBar.background": "#000000",
+    "sideBar.foreground": "#FFFFFF",
+    "editor.background": "#000000",
+    "editor.foreground": "#FFFFFF",
+    "sideBarSectionHeader.background": "#000000",
+    "sideBarSectionHeader.foreground": "#FFFFFF",
+    "activityBar.border": "#FFFFFF",
+    "statusBar.background": "#102F97"
+  },
+  "javascript.implicitProjectConfig.experimentalDecorators": true
+}
