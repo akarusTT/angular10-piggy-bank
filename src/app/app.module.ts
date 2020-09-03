@@ -15,10 +15,12 @@ import {
   appInitializer,
   LoggingInterceptor,
 } from './_helpers';
-import { AccountService } from './_services';
+import { UserService } from './_services';
 import { AppComponent } from './app.component';
 import { AlertComponent } from './_components';
 import { HomeComponent } from './home';
+import { HeaderComponent } from './_components/header/header.component';
+import { FooterComponent } from './_components/footer/footer.component';
 
 @NgModule({
   imports: [
@@ -34,13 +36,19 @@ import { HomeComponent } from './home';
       serverLogLevel: NgxLoggerLevel.ERROR,
     }),
   ],
-  declarations: [AppComponent, AlertComponent, HomeComponent],
+  declarations: [
+    AppComponent,
+    AlertComponent,
+    HomeComponent,
+    FooterComponent,
+    HeaderComponent,
+  ],
   providers: [
     {
       provide: APP_INITIALIZER,
       useFactory: appInitializer,
       multi: true,
-      deps: [AccountService],
+      deps: [UserService],
     },
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },

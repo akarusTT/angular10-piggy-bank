@@ -3,16 +3,14 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { first } from 'rxjs/operators';
 
-import { UserService, AlertService } from '@app/_services';
-import { MustMatch } from '@app/_helpers';
+import { UserService, AlertService } from '../_services';
+import { MustMatch } from '../_helpers';
 
-@Component({ templateUrl: 'update.component.html' })
-export class UpdateComponent implements OnInit {
-  user = this.userService.userValue;
+@Component({ templateUrl: 'register.component.html' })
+export class RegisterComponent implements OnInit {
   form: FormGroup;
   loading = false;
   submitted = false;
-  deleting = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -25,12 +23,13 @@ export class UpdateComponent implements OnInit {
   ngOnInit(): void {
     this.form = this.formBuilder.group(
       {
-        title: [this.user.title, Validators.required],
-        firstName: [this.user.firstName, Validators.required],
-        lastName: [this.user.lastName, Validators.required],
-        email: [this.user.email, [Validators.required, Validators.email]],
-        password: ['', [Validators.minLength(6)]],
-        confirmPassword: [''],
+        title: ['', Validators.required],
+        firstName: ['', Validators.required],
+        lastName: ['', Validators.required],
+        email: ['', [Validators.required, Validators.email]],
+        password: ['', [Validators.required, Validators.minLength(6)]],
+        confirmPassword: ['', Validators.required],
+        acceptTerms: [false, Validators.requiredTrue],
       },
       {
         validator: MustMatch('password', 'confirmPassword'),
@@ -56,33 +55,20 @@ export class UpdateComponent implements OnInit {
 
     this.loading = true;
     this.userService
-      .update(this.user.id, this.form.value)
+      .register(this.form.value)
       .pipe(first())
       .subscribe({
         next: () => {
-          this.alertService.success('Update successful', {
-            keepAfterRouteChange: true,
-          });
-          this.router.navigate(['../'], { relativeTo: this.route });
+          this.alertService.success(
+            'Registration successful, please check your email for verification instructions',
+            { keepAfterRouteChange: true }
+          );
+          this.router.navigate(['../login'], { relativeTo: this.route });
         },
         error: (error) => {
           this.alertService.error(error);
           this.loading = false;
         },
       });
-  }
-
-  onDelete(): any {
-    if (confirm('Are you sure?')) {
-      this.deleting = true;
-      this.userService
-        .delete(this.user.id)
-        .pipe(first())
-        .subscribe(() => {
-          this.alertService.success('User deleted successfully', {
-            keepAfterRouteChange: true,
-          });
-        });
-    }
   }
 }

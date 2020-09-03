@@ -6,13 +6,20 @@ import { first } from 'rxjs/operators';
 import { UserService, AlertService } from '@app/_services';
 import { MustMatch } from '@app/_helpers';
 
-@Component({ templateUrl: 'update.component.html' })
-export class UpdateComponent implements OnInit {
-  user = this.userService.userValue;
+enum TokenStatus {
+  Validating,
+  Valid,
+  Invalid,
+}
+
+@Component({ templateUrl: 'reset-password.component.html' })
+export class ResetPasswordComponent implements OnInit {
+  TokenStatus = TokenStatus;
+  tokenStatus = TokenStatus.Validating;
+  token = null;
   form: FormGroup;
   loading = false;
   submitted = false;
-  deleting = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -25,17 +32,31 @@ export class UpdateComponent implements OnInit {
   ngOnInit(): void {
     this.form = this.formBuilder.group(
       {
-        title: [this.user.title, Validators.required],
-        firstName: [this.user.firstName, Validators.required],
-        lastName: [this.user.lastName, Validators.required],
-        email: [this.user.email, [Validators.required, Validators.email]],
-        password: ['', [Validators.minLength(6)]],
-        confirmPassword: [''],
+        password: ['', [Validators.required, Validators.minLength(6)]],
+        confirmPassword: ['', Validators.required],
       },
       {
         validator: MustMatch('password', 'confirmPassword'),
       }
     );
+
+    const token = this.route.snapshot.queryParams.token;
+
+    // remove token from url to prevent http referer leakage
+    this.router.navigate([], { relativeTo: this.route, replaceUrl: true });
+
+    this.userService
+      .validateResetToken(token)
+      .pipe(first())
+      .subscribe({
+        next: () => {
+          this.token = token;
+          this.tokenStatus = TokenStatus.Valid;
+        },
+        error: () => {
+          this.tokenStatus = TokenStatus.Invalid;
+        },
+      });
   }
 
   // convenience getter for easy access to form fields
@@ -56,33 +77,24 @@ export class UpdateComponent implements OnInit {
 
     this.loading = true;
     this.userService
-      .update(this.user.id, this.form.value)
+      .resetPassword(
+        this.token,
+        this.f.password.value,
+        this.f.confirmPassword.value
+      )
       .pipe(first())
       .subscribe({
         next: () => {
-          this.alertService.success('Update successful', {
-            keepAfterRouteChange: true,
-          });
-          this.router.navigate(['../'], { relativeTo: this.route });
+          this.alertService.success(
+            'Password reset successful, you can now login',
+            { keepAfterRouteChange: true }
+          );
+          this.router.navigate(['../login'], { relativeTo: this.route });
         },
         error: (error) => {
           this.alertService.error(error);
           this.loading = false;
         },
       });
-  }
-
-  onDelete(): any {
-    if (confirm('Are you sure?')) {
-      this.deleting = true;
-      this.userService
-        .delete(this.user.id)
-        .pipe(first())
-        .subscribe(() => {
-          this.alertService.success('User deleted successfully', {
-            keepAfterRouteChange: true,
-          });
-        });
-    }
   }
 }
